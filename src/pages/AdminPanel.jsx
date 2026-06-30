@@ -96,6 +96,14 @@ function AdminPanel({ user, onLogout }) {
           <button type="submit" disabled={loading || !file} style={{ width: '100%', padding: '12px', backgroundColor: loading ? '#9ca3af' : '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
             <Upload size={18} /> {loading ? 'Procesando Semántica y Sentimiento...' : 'Subir y Procesar Catálogos'}
           </button>
+
+          // Pon este botón dentro del JSX de tu AdminPanel.jsx
+          <button 
+            onClick={() => navigate('/admin/usuarios')} 
+            style={{ background: '#007bff', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }} >
+            📋 Administrar Usuarios Alertados
+          </button>
+
         </form>
 
         {message && <div style={{ marginTop: '15px', padding: '10px', borderRadius: '4px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', fontWeight: 'bold', color: '#1e40af' }}>{message}</div>}
