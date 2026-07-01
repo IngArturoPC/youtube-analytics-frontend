@@ -160,6 +160,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                     </div>
                                 </div>
 
+
                                 <div style={{ marginBottom: '12px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Primera Asignacion (Opcional):</label>
                                     <input type="text" value={grupo2} onChange={(e) => setGrupo2(e.target.value)} placeholder="Ej. Región Central" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
