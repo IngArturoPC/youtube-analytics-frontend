@@ -12,7 +12,8 @@ export default function UsuariosPendientes({ user, onLogout }) {
     const navigate = useNavigate();
 
     // URL de tu Backend en Render
-    const BACKEND_URL = 'https://youtube-analytics-backend.onrender.com'; // <-- Asegúrate de que sea tu URL real de Render
+    // URL dinámica heredada de tu configuración de entorno
+    const BACKEND_URL = import.meta.env.VITE_API_URL;
 
     // 1. Cargar usuarios con alerta desde el Backend
     const obtenerPendientes = async () => {
