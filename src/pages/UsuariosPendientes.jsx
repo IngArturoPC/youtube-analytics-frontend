@@ -6,7 +6,6 @@ export default function UsuariosPendientes({ user, onLogout }) {
     const [catGrupos, setCatGrupos] = useState([]); 
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     
-    // CAMBIO: Ahora es un string simple en lugar de un Array, para guardar UN SOLO grupo
     const [grupoSeleccionado, setGrupoSeleccionado] = useState(''); 
     const [grupo2, setGrupo2] = useState('');
     const [grupo3, setGrupo3] = useState('');
@@ -41,7 +40,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
     const seleccionarUsuario = (usr) => {
         setUsuarioSeleccionado(usr);
         setMensaje('');
-        setGrupoSeleccionado(''); // Resetea la selección exclusiva
+        setGrupoSeleccionado(''); 
         setGrupo2('');
         setGrupo3('');
     };
@@ -50,13 +49,11 @@ export default function UsuariosPendientes({ user, onLogout }) {
         e.preventDefault();
         if (!usuarioSeleccionado) return;
 
-        // Si no se seleccionó ningún grupo del catálogo, mandamos alerta
         if (!grupoSeleccionado) {
             setMensaje('⚠️ Por favor, selecciona un Grupo Principal de la lista.');
             return;
         }
 
-        // Estructuramos el envío: Grupo Único + las dos asignaciones opcionales adicionales
         const todosLosGrupos = [
             grupoSeleccionado,
             grupo2.trim(),
@@ -74,7 +71,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
             });
 
             if (respuesta.ok) {
-                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_llave} asignado y activado con éxito.`);
+                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_youtube_display} asignado y activado con éxito.`);
                 setUsuarios(usuarios.filter(u => u.usuario_llave !== usuarioSeleccionado.usuario_llave));
                 setUsuarioSeleccionado(null);
                 setGrupoSeleccionado('');
@@ -89,7 +86,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
 
     return (
         <div style={{ padding: '30px', fontFamily: 'Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* ... Barra superior y estructura inicial se mantienen igual ... */}
+            {/* BARRA SUPERIOR */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
                 <div>
                     <button onClick={() => navigate('/admin')} style={{ marginRight: '10px', padding: '6px 12px', cursor: 'pointer' }}>⬅️ Volver al Panel</button>
@@ -99,6 +96,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
             </div>
 
             <h2>📋 Control de Usuarios Alertados (Nuevos del CSV)</h2>
+            <p>Asigna el grupo correspondiente de manera exclusiva para indexar la información.</p>
             
             {mensaje && <div style={{ padding: '12px', background: mensaje.startsWith('⚠️') ? '#fff3cd' : '#e2f0d9', color: mensaje.startsWith('⚠️') ? '#856404' : '#385723', borderRadius: '6px', marginBottom: '20px', fontWeight: 'bold' }}>{mensaje}</div>}
 
@@ -135,8 +133,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
                             <a href={usuarioSeleccionado.url_canal} target="_blank" rel="noreferrer" style={{ color: '#0056b3', display: 'block', marginBottom: '15px' }}>🔗 Ver Canal de YouTube</a>
                             
                             <form onSubmit={handleGuardarGrupos}>
-                                
-                                {/* NUEVA SECCIÓN DE SELECCIÓN EXCLUSIVA (RADIO BUTTONS) */}
+                                {/* SECCIÓN DE SELECCIÓN EXCLUSIVA (RADIO BUTTONS) */}
                                 <div style={{ marginBottom: '15px', border: '1px solid #d1d5db', padding: '12px', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
                                     <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Grupo Principal (Selección Única y Obligatoria):</label>
                                     <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -147,7 +144,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                                 <label key={g.grupo} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }} title={g.descripcion}>
                                                     <input 
                                                         type="radio" 
-                                                        name="grupo_unico" // El mismo name en todos agrupa la exclusividad
+                                                        name="grupo_unico" 
                                                         value={g.grupo}
                                                         checked={grupoSeleccionado === g.grupo} 
                                                         onChange={() => setGrupoSeleccionado(g.grupo)}
@@ -159,7 +156,6 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                         )}
                                     </div>
                                 </div>
-
 
                                 <div style={{ marginBottom: '12px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Primera Asignacion (Opcional):</label>
@@ -185,3 +181,4 @@ export default function UsuariosPendientes({ user, onLogout }) {
             </div>
         </div>
     );
+}
