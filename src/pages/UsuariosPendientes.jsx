@@ -155,7 +155,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
                             
                             <form onSubmit={handleGuardarGrupos}>
                                 
-                                {/* NUEVO CHECKLIST DINÁMICO */}
+                                {/* CHECKLIST DINÁMICO REPARADO */}
                                 <div style={{ marginBottom: '15px', border: '1px solid #d1d5db', padding: '12px', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
                                     <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Grupo Principal (Selecciona los que apliquen):</label>
                                     <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -163,14 +163,14 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                             <span style={{ fontSize: '13px', color: '#666' }}>Cargando catálogo base...</span>
                                         ) : (
                                             catGrupos.map((g) => (
-                                                <label key={g.id || g.nombre} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
+                                                <label key={g.grupo} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }} title={g.descripcion}>
                                                     <input 
                                                         type="checkbox" 
-                                                        checked={gruposSeleccionados.includes(g.nombre)} 
-                                                        onChange={() => handleCheckboxChange(g.nombre)}
+                                                        checked={gruposSeleccionados.includes(g.grupo)} // Compara con la propiedad .grupo
+                                                        onChange={() => handleCheckboxChange(g.grupo)}   // Pasa la propiedad .grupo
                                                         style={{ width: '16px', height: '16px' }}
                                                     />
-                                                    {g.nombre}
+                                                    <strong>{g.grupo}</strong> — <span style={{ color: '#666', fontSize: '12px' }}>{g.descripcion}</span>
                                                 </label>
                                             ))
                                         )}
