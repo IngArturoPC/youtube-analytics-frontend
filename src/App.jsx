@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import AdminPanel from './pages/AdminPanel';
 import Dashboard from './pages/Dashboard';
-import UsuariosPendientes from './components/UsuariosPendientes'; // Importamos tu nuevo componente
+import UsuariosPendientes from './pages/UsuariosPendientes'; // Importamos tu nuevo componente
 
 function App() {
   // Estado global básico de simulación de sesión para la prueba
