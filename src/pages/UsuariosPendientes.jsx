@@ -6,9 +6,11 @@ export default function UsuariosPendientes({ user, onLogout }) {
     const [catGrupos, setCatGrupos] = useState([]); 
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     
+    // Estados del formulario
     const [grupoSeleccionado, setGrupoSeleccionado] = useState(''); 
-    const [grupo2, setGrupo2] = useState('');
-    const [grupo3, setGrupo3] = useState('');
+    const [asig1, setAsig1] = useState('');
+    const [asig2, setAsig2] = useState('');
+    const [asig3, setAsig3] = useState(''); // <-- Estado para Tercera Asignación
     
     const [mensaje, setMensaje] = useState('');
     const [cargando, setCargando] = useState(true);
@@ -41,8 +43,9 @@ export default function UsuariosPendientes({ user, onLogout }) {
         setUsuarioSeleccionado(usr);
         setMensaje('');
         setGrupoSeleccionado(''); 
-        setGrupo2('');
-        setGrupo3('');
+        setAsig1('');
+        setAsig2('');
+        setAsig3('');
     };
 
     const handleGuardarGrupos = async (e) => {
@@ -54,28 +57,23 @@ export default function UsuariosPendientes({ user, onLogout }) {
             return;
         }
 
-        const todosLosGrupos = [
-            grupoSeleccionado,
-            grupo2.trim(),
-            grupo3.trim()
-        ].filter(g => g !== "");
-
         try {
             const respuesta = await fetch(`${BACKEND_URL}/api/users/update-groups`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     usuario_llave: usuarioSeleccionado.usuario_llave,
-                    grupos: todosLosGrupos
+                    grupo_principal: grupoSeleccionado,
+                    asignaciones: [asig1.trim(), asig2.trim(), asig3.trim()] // Empaquetamos las 3 asignaciones
                 })
             });
 
             if (respuesta.ok) {
-                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_youtube_display} asignado y activado con éxito.`);
+                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_youtube_display} guardado y activado.`);
                 setUsuarios(usuarios.filter(u => u.usuario_llave !== usuarioSeleccionado.usuario_llave));
                 setUsuarioSeleccionado(null);
                 setGrupoSeleccionado('');
-                setGrupo2(''); setGrupo3('');
+                setAsig1(''); setAsig2(''); setAsig3('');
             } else {
                 setMensaje('❌ Hubo un error al actualizar el usuario.');
             }
@@ -86,7 +84,6 @@ export default function UsuariosPendientes({ user, onLogout }) {
 
     return (
         <div style={{ padding: '30px', fontFamily: 'Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* BARRA SUPERIOR */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
                 <div>
                     <button onClick={() => navigate('/admin')} style={{ marginRight: '10px', padding: '6px 12px', cursor: 'pointer' }}>⬅️ Volver al Panel</button>
@@ -96,13 +93,12 @@ export default function UsuariosPendientes({ user, onLogout }) {
             </div>
 
             <h2>📋 Control de Usuarios Alertados (Nuevos del CSV)</h2>
-            <p>Asigna el grupo correspondiente de manera exclusiva para indexar la información.</p>
             
             {mensaje && <div style={{ padding: '12px', background: mensaje.startsWith('⚠️') ? '#fff3cd' : '#e2f0d9', color: mensaje.startsWith('⚠️') ? '#856404' : '#385723', borderRadius: '6px', marginBottom: '20px', fontWeight: 'bold' }}>{mensaje}</div>}
 
             <div style={{ display: 'flex', gap: '30px', marginTop: '20px' }}>
                 {/* COLUMNA IZQUIERDA: LISTA */}
-                <div style={{ flex: 1, border: '1px solid #ccc', borderRadius: '8px', padding: '15px', maxHeight: '550px', overflowY: 'auto' }}>
+                <div style={{ flex: 1, border: '1px solid #ccc', borderRadius: '8px', padding: '15px', maxHeight: '580px', overflowY: 'auto' }}>
                     <h3>Pendientes por revisar ({usuarios.length})</h3>
                     {cargando ? <p>Cargando lista de alertas...</p> : usuarios.length === 0 ? <p>🎉 ¡Excelente! No hay usuarios pendientes.</p> : (
                         usuarios.map((usr) => (
@@ -141,7 +137,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                             <span style={{ fontSize: '13px', color: '#666' }}>Cargando catálogo base...</span>
                                         ) : (
                                             catGrupos.map((g) => (
-                                                <label key={g.grupo} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }} title={g.descripcion}>
+                                                <label key={g.grupo} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
                                                     <input 
                                                         type="radio" 
                                                         name="grupo_unico" 
@@ -158,13 +154,19 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                 </div>
 
                                 <div style={{ marginBottom: '12px' }}>
-                                    <label style={{ fontWeight: 'bold' }}>Primera Asignacion (Opcional):</label>
-                                    <input type="text" value={grupo2} onChange={(e) => setGrupo2(e.target.value)} placeholder="Ej. Región Central" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
+                                    <label style={{ fontWeight: 'bold' }}>Primera Asignación (Opcional):</label>
+                                    <input type="text" value={asig1} onChange={(e) => setAsig1(e.target.value)} placeholder="Ej. Región Central" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
                                 </div>
                                 
-                                <div style={{ marginBottom: '20px' }}>
+                                <div style={{ marginBottom: '12px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Segunda Asignación (Opcional):</label>
-                                    <input type="text" value={grupo3} onChange={(e) => setGrupo3(e.target.value)} placeholder="Ej. Supervisor Comercial" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
+                                    <input type="text" value={asig2} onChange={(e) => setAsig2(e.target.value)} placeholder="Ej. Supervisor Comercial" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
+                                </div>
+
+                                {/* NUEVA TERCERA ASIGNACIÓN SOLICITADA */}
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ fontWeight: 'bold' }}>Tercera Asignación (Opcional):</label>
+                                    <input type="text" value={asig3} onChange={(e) => setAsig3(e.target.value)} placeholder="Ej. Turno Matutino" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
                                 </div>
 
                                 <button type="submit" style={{ width: '100%', background: '#28a745', color: 'white', border: 'none', padding: '12px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
@@ -174,7 +176,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
                         </div>
                     ) : (
                         <div style={{ border: '1px dashed #ccc', borderRadius: '8px', padding: '40px', textAlign: 'center', color: '#666', background: '#fafafa' }}>
-                            💡 Selecciona un usuario de la lista de la izquierda para desplegar el panel de selección exclusiva.
+                            💡 Selecciona un usuario de la lista de la izquierda para desplegar el panel de asignación directa.
                         </div>
                     )}
                 </div>
