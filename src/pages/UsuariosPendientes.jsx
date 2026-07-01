@@ -66,7 +66,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
             return;
         }
 
-        // CORRECCIÓN: Validamos de forma segura si cada asignación tiene texto antes de aplicar .trim()
+        // CORRECCIÓN COMPLETA: Evaluamos la existencia de la variable ANTES de hacer el .trim()
         const asignacion1Limpia = asig1 ? asig1.trim() : '';
         const asignacion2Limpia = asig2 ? asig2.trim() : '';
         const asignacion3Limpia = asig3 ? asig3.trim() : '';
