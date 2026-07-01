@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 
 export default function UsuariosPendientes({ user, onLogout }) {
     const [usuarios, setUsuarios] = useState([]);
-    const [catGrupos, setCatGrupos] = useState([]); // <-- Catálogo de grupos desde la BD
+    const [catGrupos, setCatGrupos] = useState([]); 
     const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     
-    // Estados para el formulario
-    const [gruposSeleccionados, setGruposSeleccionados] = useState([]); // Checklist para Grupo Principal
+    // CAMBIO: Ahora es un string simple en lugar de un Array, para guardar UN SOLO grupo
+    const [grupoSeleccionado, setGrupoSeleccionado] = useState(''); 
     const [grupo2, setGrupo2] = useState('');
     const [grupo3, setGrupo3] = useState('');
     
@@ -17,25 +17,16 @@ export default function UsuariosPendientes({ user, onLogout }) {
 
     const BACKEND_URL = import.meta.env.VITE_API_URL;
 
-    // 1. Cargar Usuarios Pendientes y Catálogo de Grupos
     const inicializarDatos = async () => {
         try {
             setCargando(true);
-            
-            // Petición simultánea de usuarios y catálogo de grupos
             const [resUsuarios, resGrupos] = await Promise.all([
                 fetch(`${BACKEND_URL}/api/users/pending`),
-                fetch(`${BACKEND_URL}/api/groups/catalog`) // <-- Nuevo endpoint para tu catálogo
+                fetch(`${BACKEND_URL}/api/groups/catalog`) 
             ]);
 
-            if (resUsuarios.ok) {
-                const datosUsr = await resUsuarios.json();
-                setUsuarios(datosUsr);
-            }
-            if (resGrupos.ok) {
-                const datosGrupos = await resGrupos.json();
-                setCatGrupos(datosGrupos);
-            }
+            if (resUsuarios.ok) setUsuarios(await resUsuarios.json());
+            if (resGrupos.ok) setCatGrupos(await resGrupos.json());
         } catch (error) {
             console.error("❌ Error al inicializar datos:", error);
         } finally {
@@ -47,32 +38,27 @@ export default function UsuariosPendientes({ user, onLogout }) {
         inicializarDatos();
     }, []);
 
-    // Manejar la selección del Checklist
-    const handleCheckboxChange = (nombreGrupo) => {
-        if (gruposSeleccionados.includes(nombreGrupo)) {
-            setGruposSeleccionados(gruposSeleccionados.filter(g => g !== nombreGrupo));
-        } else {
-            setGruposSeleccionados([...gruposSeleccionados, nombreGrupo]);
-        }
-    };
-
-    // Al seleccionar un usuario, limpiamos y preparamos el formulario
     const seleccionarUsuario = (usr) => {
         setUsuarioSeleccionado(usr);
         setMensaje('');
-        setGruposSeleccionados([]); // Limpiar checklist
+        setGrupoSeleccionado(''); // Resetea la selección exclusiva
         setGrupo2('');
         setGrupo3('');
     };
 
-    // 2. Guardar Grupos y Activar Usuario
     const handleGuardarGrupos = async (e) => {
         e.preventDefault();
         if (!usuarioSeleccionado) return;
 
-        // Combinamos los grupos seleccionados del checklist con las asignaciones de texto
+        // Si no se seleccionó ningún grupo del catálogo, mandamos alerta
+        if (!grupoSeleccionado) {
+            setMensaje('⚠️ Por favor, selecciona un Grupo Principal de la lista.');
+            return;
+        }
+
+        // Estructuramos el envío: Grupo Único + las dos asignaciones opcionales adicionales
         const todosLosGrupos = [
-            ...gruposSeleccionados,
+            grupoSeleccionado,
             grupo2.trim(),
             grupo3.trim()
         ].filter(g => g !== "");
@@ -88,10 +74,10 @@ export default function UsuariosPendientes({ user, onLogout }) {
             });
 
             if (respuesta.ok) {
-                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_llave} asignado y activado.`);
+                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_llave} asignado y activado con éxito.`);
                 setUsuarios(usuarios.filter(u => u.usuario_llave !== usuarioSeleccionado.usuario_llave));
                 setUsuarioSeleccionado(null);
-                setGruposSeleccionados([]);
+                setGrupoSeleccionado('');
                 setGrupo2(''); setGrupo3('');
             } else {
                 setMensaje('❌ Hubo un error al actualizar el usuario.');
@@ -103,7 +89,7 @@ export default function UsuariosPendientes({ user, onLogout }) {
 
     return (
         <div style={{ padding: '30px', fontFamily: 'Arial, sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* BARRA SUPERIOR */}
+            {/* ... Barra superior y estructura inicial se mantienen igual ... */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
                 <div>
                     <button onClick={() => navigate('/admin')} style={{ marginRight: '10px', padding: '6px 12px', cursor: 'pointer' }}>⬅️ Volver al Panel</button>
@@ -113,12 +99,10 @@ export default function UsuariosPendientes({ user, onLogout }) {
             </div>
 
             <h2>📋 Control de Usuarios Alertados (Nuevos del CSV)</h2>
-            <p>Clasifica y vincula a los usuarios con sus respectivos grupos operativos.</p>
             
-            {mensaje && <div style={{ padding: '12px', background: '#e2f0d9', color: '#385723', borderRadius: '6px', marginBottom: '20px', fontWeight: 'bold' }}>{mensaje}</div>}
+            {mensaje && <div style={{ padding: '12px', background: mensaje.startsWith('⚠️') ? '#fff3cd' : '#e2f0d9', color: mensaje.startsWith('⚠️') ? '#856404' : '#385723', borderRadius: '6px', marginBottom: '20px', fontWeight: 'bold' }}>{mensaje}</div>}
 
             <div style={{ display: 'flex', gap: '30px', marginTop: '20px' }}>
-                
                 {/* COLUMNA IZQUIERDA: LISTA */}
                 <div style={{ flex: 1, border: '1px solid #ccc', borderRadius: '8px', padding: '15px', maxHeight: '550px', overflowY: 'auto' }}>
                     <h3>Pendientes por revisar ({usuarios.length})</h3>
@@ -133,13 +117,10 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                     borderBottom: '1px solid #ddd',
                                     cursor: 'pointer',
                                     borderRadius: '4px',
-                                    marginBottom: '6px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between'
+                                    marginBottom: '6px'
                                 }}
                             >
-                                <span>👤 <strong>{usr.usuario_youtube_display}</strong></span>
-                                <span style={{ fontSize: '12px', color: '#0056b3' }}>Gestionar →</span>
+                                👤 <strong>{usr.usuario_youtube_display}</strong>
                             </div>
                         ))
                     )}
@@ -150,25 +131,27 @@ export default function UsuariosPendientes({ user, onLogout }) {
                     {usuarioSeleccionado ? (
                         <div style={{ border: '2px solid #007bff', borderRadius: '8px', padding: '20px', background: '#ffffff' }}>
                             <h3>Asignación de Criterios</h3>
-                            <p style={{ color: '#555' }}>Gestionando a: <strong>{usuarioSeleccionado.usuario_youtube_display}</strong></p>
-                            <a href={usuarioSeleccionado.url_canal} target="_blank" rel="noreferrer" style={{ color: '#0056b3', textDecoration: 'underline', display: 'block', marginBottom: '15px' }}>🔗 Ver Canal de YouTube</a>
+                            <p>Gestionando a: <strong>{usuarioSeleccionado.usuario_youtube_display}</strong></p>
+                            <a href={usuarioSeleccionado.url_canal} target="_blank" rel="noreferrer" style={{ color: '#0056b3', display: 'block', marginBottom: '15px' }}>🔗 Ver Canal de YouTube</a>
                             
                             <form onSubmit={handleGuardarGrupos}>
                                 
-                                {/* CHECKLIST DINÁMICO REPARADO */}
+                                {/* NUEVA SECCIÓN DE SELECCIÓN EXCLUSIVA (RADIO BUTTONS) */}
                                 <div style={{ marginBottom: '15px', border: '1px solid #d1d5db', padding: '12px', borderRadius: '6px', backgroundColor: '#f9fafb' }}>
-                                    <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Grupo Principal (Selecciona los que apliquen):</label>
-                                    <div style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Grupo Principal (Selección Única y Obligatoria):</label>
+                                    <div style={{ maxHeight: '140px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {catGrupos.length === 0 ? (
                                             <span style={{ fontSize: '13px', color: '#666' }}>Cargando catálogo base...</span>
                                         ) : (
                                             catGrupos.map((g) => (
                                                 <label key={g.grupo} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }} title={g.descripcion}>
                                                     <input 
-                                                        type="checkbox" 
-                                                        checked={gruposSeleccionados.includes(g.grupo)} // Compara con la propiedad .grupo
-                                                        onChange={() => handleCheckboxChange(g.grupo)}   // Pasa la propiedad .grupo
-                                                        style={{ width: '16px', height: '16px' }}
+                                                        type="radio" 
+                                                        name="grupo_unico" // El mismo name en todos agrupa la exclusividad
+                                                        value={g.grupo}
+                                                        checked={grupoSeleccionado === g.grupo} 
+                                                        onChange={() => setGrupoSeleccionado(g.grupo)}
+                                                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                                                     />
                                                     <strong>{g.grupo}</strong> — <span style={{ color: '#666', fontSize: '12px' }}>{g.descripcion}</span>
                                                 </label>
@@ -177,7 +160,6 @@ export default function UsuariosPendientes({ user, onLogout }) {
                                     </div>
                                 </div>
 
-                                {/* NUEVAS ETIQUETAS SOLICITADAS */}
                                 <div style={{ marginBottom: '12px' }}>
                                     <label style={{ fontWeight: 'bold' }}>Primera Asignacion (Opcional):</label>
                                     <input type="text" value={grupo2} onChange={(e) => setGrupo2(e.target.value)} placeholder="Ej. Región Central" style={{ width: '100%', padding: '8px', marginTop: '5px', boxSizing: 'border-box' }} />
@@ -195,12 +177,10 @@ export default function UsuariosPendientes({ user, onLogout }) {
                         </div>
                     ) : (
                         <div style={{ border: '1px dashed #ccc', borderRadius: '8px', padding: '40px', textAlign: 'center', color: '#666', background: '#fafafa' }}>
-                            💡 Selecciona un usuario de la lista de la izquierda para desplegar el Checklist de control.
+                            💡 Selecciona un usuario de la lista de la izquierda para desplegar el panel de selección exclusiva.
                         </div>
                     )}
                 </div>
-
             </div>
         </div>
     );
-}
