@@ -57,6 +57,20 @@ export default function UsuariosPendientes({ user, onLogout }) {
             return;
         }
 
+        const handleGuardarGrupos = async (e) => {
+        e.preventDefault();
+        if (!usuarioSeleccionado) return;
+
+        if (!grupoSeleccionado) {
+            setMensaje('⚠️ Por favor, selecciona un Grupo Principal de la lista.');
+            return;
+        }
+
+        // CORRECCIÓN: Validamos de forma segura si cada asignación tiene texto antes de aplicar .trim()
+        const asignacion1Limpia = asig1 ? asig1.trim() : '';
+        const asignacion2Limpia = asig2 ? asig2.trim() : '';
+        const asignacion3Limpia = asig3 ? asig3.trim() : '';
+
         try {
             const respuesta = await fetch(`${BACKEND_URL}/api/users/update-groups`, {
                 method: 'PUT',
@@ -64,9 +78,23 @@ export default function UsuariosPendientes({ user, onLogout }) {
                 body: JSON.stringify({
                     usuario_llave: usuarioSeleccionado.usuario_llave,
                     grupo_principal: grupoSeleccionado,
-                    asignaciones: [asig1.trim(), asig2.trim(), asig3.trim()] // Empaquetamos las 3 asignaciones
+                    asignaciones: [asignacion1Limpia, asignacion2Limpia, asignacion3Limpia] // Arreglo sanitizado
                 })
             });
+
+            if (respuesta.ok) {
+                setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_youtube_display} guardado y activado.`);
+                setUsuarios(usuarios.filter(u => u.usuario_llave !== usuarioSeleccionado.usuario_llave));
+                setUsuarioSeleccionado(null);
+                setGrupoSeleccionado('');
+                setAsig1(''); setAsig2(''); setAsig3('');
+            } else {
+                setMensaje('❌ Hubo un error al actualizar el usuario en el servidor.');
+            }
+        } catch (error) {
+            setMensaje('❌ Error de red al conectar con el servidor.');
+        }
+    };
 
             if (respuesta.ok) {
                 setMensaje(`✅ Usuario ${usuarioSeleccionado.usuario_youtube_display} guardado y activado.`);
